@@ -23,24 +23,6 @@ function SQSQueue({ queue }: { queue: string }) {
   const { data: attributes, revalidate } = useCachedPromise(fetchQueueAttributes, [queue]);
   const displayName = (queue.split("/").at(-1) ?? "").replace(/-/g, " ").replace(/\./g, " ");
 
-  const accessories: List.Item.Accessory[] = [
-    {
-      icon: "📨",
-      text: attributes ? attributes.ApproximateNumberOfMessages : "...",
-      tooltip: "Approximated Number of Messages",
-    },
-    {
-      icon: "✈️",
-      text: attributes ? attributes.ApproximateNumberOfMessagesNotVisible : "...",
-      tooltip: "Approximated Number of Messages Not Visible",
-    },
-    {
-      icon: "⏰",
-      text: attributes ? new Date(Number.parseInt(attributes.CreatedTimestamp) * 1000).toLocaleDateString() : "...",
-      tooltip: "Creation Time",
-    },
-  ];
-
   function handlePurgeQueueAction() {
     confirmAlert({
       title: "Are you sure you want to purge the queue?",
@@ -89,7 +71,22 @@ function SQSQueue({ queue }: { queue: string }) {
           />
         </ActionPanel>
       }
-      accessories={accessories}
+      accessories={[
+        {
+          icon: Icon.Message,
+          text: attributes ? attributes.ApproximateNumberOfMessages : "...",
+          tooltip: "Approximated Number of Messages",
+        },
+        {
+          icon: Icon.AirplaneLanding,
+          text: attributes ? attributes.ApproximateNumberOfMessagesNotVisible : "...",
+          tooltip: "Approximated Number of Messages Not Visible",
+        },
+        {
+          date: attributes && new Date(Number.parseInt(attributes.CreatedTimestamp) * 1000),
+          tooltip: "Creation Time",
+        },
+      ]}
     />
   );
 }

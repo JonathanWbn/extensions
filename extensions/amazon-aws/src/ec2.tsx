@@ -19,32 +19,8 @@ export default function EC2() {
   );
 }
 
-function EC2Instance(props: { instance: AWS.EC2.Instance }) {
-  const instance = props.instance;
+function EC2Instance({ instance }: { instance: AWS.EC2.Instance }) {
   const name = instance.Tags?.find((t) => t.Key === "Name")?.Value?.replace(/-/g, " ");
-
-  function getAccessories(): List.Item.Accessory[] {
-    const _acc: List.Item.Accessory[] = [];
-    _acc.push({
-      icon: "🔒",
-      text: instance.PrivateIpAddress,
-      tooltip: "Private Ip Address",
-    });
-    if (instance.PublicIpAddress) {
-      _acc.push({
-        icon: "🌍",
-        text: instance.PublicIpAddress,
-        tooltip: "Public Ip Address",
-      });
-    }
-    _acc.push({
-      icon: "⏰",
-      text: instance.LaunchTime ? instance.LaunchTime.toLocaleDateString() : undefined,
-      tooltip: "Launch Time",
-    });
-
-    return _acc;
-  }
 
   return (
     <List.Item
@@ -72,7 +48,7 @@ function EC2Instance(props: { instance: AWS.EC2.Instance }) {
           )}
         </ActionPanel>
       }
-      accessories={getAccessories()}
+      accessories={[{ date: instance.LaunchTime }]}
     />
   );
 }

@@ -45,12 +45,7 @@ function CodePipelineListItem({ pipeline }: { pipeline: PipelineSummary }) {
           />
         </ActionPanel>
       }
-      accessories={[
-        {
-          text: pipeline.created ? new Date(pipeline.created).toLocaleString() : undefined,
-        },
-        { icon: iconMap[status] },
-      ]}
+      accessories={[{ date: pipeline.created }, { icon: iconMap[status] }]}
     />
   );
 }

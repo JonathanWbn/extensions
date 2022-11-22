@@ -40,13 +40,7 @@ function CloudFormationStack({ stack }: { stack: StackSummary }) {
           />
         </ActionPanel>
       }
-      accessories={[
-        {
-          text: stack.LastUpdatedTime
-            ? new Date(stack.LastUpdatedTime).toLocaleString()
-            : new Date(stack.CreationTime).toLocaleString(),
-        },
-      ]}
+      accessories={[{ date: stack.LastUpdatedTime || stack.CreationTime }]}
     />
   );
 }

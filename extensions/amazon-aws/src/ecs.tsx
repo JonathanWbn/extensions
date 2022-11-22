@@ -3,7 +3,6 @@ import AWS from "aws-sdk";
 import setupAws from "./util/setupAws";
 
 import { useCachedPromise } from "@raycast/utils";
-import { useMemo } from "react";
 
 const preferences = setupAws();
 const ecs = new AWS.ECS({ apiVersion: "2016-11-15" });
@@ -21,33 +20,12 @@ export default function ECS() {
   );
 }
 
-function ECSCluster(props: { cluster: AWS.ECS.Cluster }) {
-  const cluster = props.cluster;
-  const name = cluster.clusterName;
-
-  const subtitle = useMemo(() => {
-    switch (cluster.status || "INACTIVE") {
-      case "ACTIVE":
-        return "🟢 " + (cluster.status || "");
-      case "PROVISIONING":
-        return "⬆️ " + (cluster.status || "");
-      case "DEPROVISIONING":
-        return "⬇️ " + (cluster.status || "");
-      case "INACTIVE":
-        return "⚫ " + (cluster.status || "");
-      case "FAILED":
-        return "🔴 " + (cluster.status || "");
-      default:
-        return "⚫";
-    }
-  }, [cluster]);
-
+function ECSCluster({ cluster }: { cluster: AWS.ECS.Cluster }) {
   return (
     <List.Item
       id={cluster.clusterArn}
       key={cluster.clusterArn}
-      title={name || "Unknown ECS name"}
-      subtitle={subtitle}
+      title={cluster.clusterName || "Unknown ECS name"}
       icon={Icon.Box}
       actions={
         <ActionPanel>
@@ -64,23 +42,7 @@ function ECSCluster(props: { cluster: AWS.ECS.Cluster }) {
           />
         </ActionPanel>
       }
-      accessories={[
-        {
-          icon: "⚙️",
-          text: (cluster.activeServicesCount || 0).toString(),
-          tooltip: "Active Services Count",
-        },
-        {
-          icon: "⏰",
-          text: (cluster.pendingTasksCount || 0).toString(),
-          tooltip: "Pending Tasks Count",
-        },
-        {
-          icon: "⚡",
-          text: (cluster.runningTasksCount || 0).toString(),
-          tooltip: "Running Tasks Count",
-        },
-      ]}
+      accessories={[{ text: cluster.status }]}
     />
   );
 }
