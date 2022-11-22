@@ -21,7 +21,7 @@ export default function Lambda() {
 function LambdaFunction({ func }: { func: AWS.Lambda.FunctionConfiguration }) {
   return (
     <List.Item
-      icon="lambda.png"
+      icon={Icon.CodeBlock}
       title={func.FunctionName || ""}
       actions={
         <ActionPanel>

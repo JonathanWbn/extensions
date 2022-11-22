@@ -48,7 +48,7 @@ function ECSCluster(props: { cluster: AWS.ECS.Cluster }) {
       key={cluster.clusterArn}
       title={name || "Unknown ECS name"}
       subtitle={subtitle}
-      icon="ecs.png"
+      icon={Icon.Box}
       actions={
         <ActionPanel>
           <Action.OpenInBrowser

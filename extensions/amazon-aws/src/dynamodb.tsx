@@ -24,7 +24,7 @@ function DynamoDbTable({ tableName }: { tableName: AWS.DynamoDB.TableName }) {
   return (
     <List.Item
       title={tableName || "Unknown Table name"}
-      icon="dynamodb.png"
+      icon={Icon.HardDrive}
       actions={
         <ActionPanel>
           <Action.OpenInBrowser
