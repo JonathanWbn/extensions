@@ -1,6 +1,5 @@
 import { ActionPanel, List, Action, confirmAlert, Toast, showToast, Icon } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
-import chunk from "lodash/chunk";
 import AWS from "aws-sdk";
 import setupAws from "./util/setupAws";
 
@@ -9,37 +8,35 @@ const sqs = new AWS.SQS({ apiVersion: "2012-11-05" });
 
 export default function SQS() {
   const { data: queues, error, isLoading } = useCachedPromise(fetchQueues);
-  const { data: attributes, revalidate: revalidateAttributes } = useCachedPromise(fetchQueueAttributes, queues || []);
 
   return (
     <List isLoading={isLoading} searchBarPlaceholder="Filter queues by name...">
       {error && <List.EmptyView title={error.message} icon={Icon.Warning} />}
-      {queues?.map((i, k) => (
-        <SQSQueue key={k} queue={i} attributes={attributes?.[i]} onPurge={revalidateAttributes} />
+      {queues?.map((queue) => (
+        <SQSQueue key={queue} queue={queue} />
       ))}
     </List>
   );
 }
 
-function SQSQueue(props: { queue: string; attributes: QueueAttributes | undefined; onPurge: VoidFunction }) {
-  const queue = props.queue;
-  const attr = props.attributes;
+function SQSQueue({ queue }: { queue: string }) {
+  const { data: attributes, revalidate } = useCachedPromise(fetchQueueAttributes, [queue]);
   const displayName = (queue.split("/").at(-1) ?? "").replace(/-/g, " ").replace(/\./g, " ");
 
   const accessories: List.Item.Accessory[] = [
     {
       icon: "📨",
-      text: attr ? attr.ApproximateNumberOfMessages : "...",
+      text: attributes ? attributes.ApproximateNumberOfMessages : "...",
       tooltip: "Approximated Number of Messages",
     },
     {
       icon: "✈️",
-      text: attr ? attr.ApproximateNumberOfMessagesNotVisible : "...",
+      text: attributes ? attributes.ApproximateNumberOfMessagesNotVisible : "...",
       tooltip: "Approximated Number of Messages Not Visible",
     },
     {
       icon: "⏰",
-      text: attr ? new Date(Number.parseInt(attr.CreatedTimestamp) * 1000).toLocaleDateString() : "...",
+      text: attributes ? new Date(Number.parseInt(attributes.CreatedTimestamp) * 1000).toLocaleDateString() : "...",
       tooltip: "Creation Time",
     },
   ];
@@ -61,7 +58,7 @@ function SQSQueue(props: { queue: string; attributes: QueueAttributes | undefine
             toast.style = Toast.Style.Failure;
             toast.title = "Failed to purge queue";
           } finally {
-            props.onPurge();
+            revalidate();
           }
         },
       },
@@ -87,7 +84,7 @@ function SQSQueue(props: { queue: string; attributes: QueueAttributes | undefine
           <Action.OpenInBrowser title="Open in Browser" shortcut={{ modifiers: [], key: "enter" }} url={path} />
           <Action.CopyToClipboard title="Copy Path" content={queue} />
           <Action.SubmitForm
-            title={`Purge Queue (${attr?.ApproximateNumberOfMessages || "..."})`}
+            title={`Purge Queue (${attributes?.ApproximateNumberOfMessages || "..."})`}
             onSubmit={handlePurgeQueueAction}
           />
         </ActionPanel>
@@ -108,39 +105,13 @@ async function fetchQueues(token?: string, queues?: string[]): Promise<string[]>
   return combinedQueues;
 }
 
-async function fetchQueueAttributes(...queueUrls: string[]) {
-  const attributesMap: QueueAttributesMap = {};
+async function fetchQueueAttributes(queueUrl: string) {
+  const { Attributes } = await sqs
+    .getQueueAttributes({
+      QueueUrl: queueUrl,
+      AttributeNames: ["ApproximateNumberOfMessages", "ApproximateNumberOfMessagesNotVisible", "CreatedTimestamp"],
+    })
+    .promise();
 
-  const queueUrlBatches = chunk(queueUrls, 15);
-
-  for (const queueUrlBatch of queueUrlBatches) {
-    await Promise.all(
-      queueUrlBatch.map(async (queueUrl) => {
-        const { Attributes } = await sqs
-          .getQueueAttributes({
-            QueueUrl: queueUrl,
-            AttributeNames: [
-              "ApproximateNumberOfMessages",
-              "ApproximateNumberOfMessagesNotVisible",
-              "CreatedTimestamp",
-            ],
-          })
-          .promise();
-
-        attributesMap[queueUrl] = Attributes as unknown as QueueAttributes;
-      })
-    );
-  }
-
-  return attributesMap;
-}
-
-interface QueueAttributes {
-  ApproximateNumberOfMessages: string;
-  ApproximateNumberOfMessagesNotVisible: string;
-  CreatedTimestamp: string;
-}
-
-interface QueueAttributesMap {
-  [url: string]: QueueAttributes;
+  return Attributes;
 }
