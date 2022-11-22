@@ -1,4 +1,4 @@
-import { ActionPanel, List, Detail, Action } from "@raycast/api";
+import { ActionPanel, List, Action, Icon } from "@raycast/api";
 import AWS from "aws-sdk";
 import setupAws from "./util/setupAws";
 
@@ -11,14 +11,9 @@ const ecs = new AWS.ECS({ apiVersion: "2016-11-15" });
 export default function ECS() {
   const { data: clusters, error, isLoading } = useCachedPromise(fetchClusters);
 
-  if (error) {
-    return (
-      <Detail markdown="No valid [configuration and credential file] (https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) found in your machine." />
-    );
-  }
-
   return (
     <List isLoading={isLoading} searchBarPlaceholder="Filter instances by name...">
+      {error && <List.EmptyView title={error.message} icon={Icon.Warning} />}
       {clusters?.map((c) => (
         <ECSCluster key={c.clusterArn} cluster={c} />
       ))}

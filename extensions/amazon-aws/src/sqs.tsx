@@ -1,4 +1,4 @@
-import { ActionPanel, List, Detail, Action, confirmAlert, Toast, showToast } from "@raycast/api";
+import { ActionPanel, List, Action, confirmAlert, Toast, showToast, Icon } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
 import chunk from "lodash/chunk";
 import AWS from "aws-sdk";
@@ -11,14 +11,9 @@ export default function SQS() {
   const { data: queues, error, isLoading } = useCachedPromise(fetchQueues);
   const { data: attributes, revalidate: revalidateAttributes } = useCachedPromise(fetchQueueAttributes, queues || []);
 
-  if (error) {
-    return (
-      <Detail markdown="No valid [configuration and credential file] (https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) found in your machine." />
-    );
-  }
-
   return (
     <List isLoading={isLoading} searchBarPlaceholder="Filter queues by name...">
+      {error && <List.EmptyView title={error.message} icon={Icon.Warning} />}
       {queues?.map((i, k) => (
         <SQSQueue key={k} queue={i} attributes={attributes?.[i]} onPurge={revalidateAttributes} />
       ))}

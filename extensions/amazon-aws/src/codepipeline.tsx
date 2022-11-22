@@ -1,4 +1,4 @@
-import { ActionPanel, List, Detail, Action, Icon } from "@raycast/api";
+import { ActionPanel, List, Action, Icon } from "@raycast/api";
 import * as AWS from "aws-sdk";
 import setupAws from "./util/setupAws";
 import { useCachedPromise } from "@raycast/utils";
@@ -10,14 +10,9 @@ const pipeline = new AWS.CodePipeline({ apiVersion: "2016-11-15" });
 export default function CodePipeline() {
   const { data: pipelines, error, isLoading } = useCachedPromise(fetchPipelines);
 
-  if (error) {
-    return (
-      <Detail markdown="No valid [configuration and credential file](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) found in your machine." />
-    );
-  }
-
   return (
     <List isLoading={isLoading} searchBarPlaceholder="Filter codepipelines by name...">
+      {error && <List.EmptyView title={error.message} icon={Icon.Warning} />}
       {pipelines?.map((i) => (
         <CodePipelineListItem key={i.name} pipeline={i} />
       ))}

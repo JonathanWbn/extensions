@@ -12,12 +12,9 @@ const s3 = new AWS.S3();
 export default function S3() {
   const { data: buckets, error, isLoading } = useCachedPromise(fetchBuckets);
 
-  if (error) {
-    return <Detail markdown="Something went wrong. Try again!" />;
-  }
-
   return (
     <List isLoading={isLoading} searchBarPlaceholder="Filter buckets by name...">
+      {error && <List.EmptyView title={error.message} icon={Icon.Warning} />}
       {buckets?.map((bucket) => (
         <S3Bucket key={bucket.Name} bucket={bucket} />
       ))}

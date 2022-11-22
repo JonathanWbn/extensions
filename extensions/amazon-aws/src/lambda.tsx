@@ -1,4 +1,4 @@
-import { ActionPanel, List, Detail, Action, Icon } from "@raycast/api";
+import { ActionPanel, List, Action, Icon } from "@raycast/api";
 import * as AWS from "aws-sdk";
 import setupAws from "./util/setupAws";
 import { useCachedPromise } from "@raycast/utils";
@@ -8,12 +8,9 @@ const preferences = setupAws();
 export default function Lambda() {
   const { data: functions, error, isLoading } = useCachedPromise(fetchFunctions);
 
-  if (error) {
-    return <Detail markdown="Something went wrong. Try again!" />;
-  }
-
   return (
     <List isLoading={isLoading} searchBarPlaceholder="Filter functions by name...">
+      {error && <List.EmptyView title={error.message} icon={Icon.Warning} />}
       {functions?.map((func) => (
         <LambdaFunction key={func.FunctionName} func={func} />
       ))}

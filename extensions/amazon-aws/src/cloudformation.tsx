@@ -1,4 +1,4 @@
-import { ActionPanel, List, Detail, Action } from "@raycast/api";
+import { ActionPanel, List, Action, Icon } from "@raycast/api";
 import * as AWS from "aws-sdk";
 import { StackSummary } from "aws-sdk/clients/cloudformation";
 import setupAws from "./util/setupAws";
@@ -10,14 +10,9 @@ const cloudformation = new AWS.CloudFormation({ apiVersion: "2016-11-15" });
 export default function CloudFormation() {
   const { data: stacks, error, isLoading } = useCachedPromise(fetchStacks);
 
-  if (error) {
-    return (
-      <Detail markdown="No valid [configuration and credential file](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) found in your machine." />
-    );
-  }
-
   return (
     <List isLoading={isLoading} searchBarPlaceholder="Filter stacks by name...">
+      {error && <List.EmptyView title={error.message} icon={Icon.Warning} />}
       {stacks?.map((s) => (
         <CloudFormationStack key={s.StackId} stack={s} />
       ))}

@@ -1,4 +1,4 @@
-import { ActionPanel, List, Detail, Action } from "@raycast/api";
+import { ActionPanel, List, Action, Icon } from "@raycast/api";
 import AWS from "aws-sdk";
 
 import setupAws from "./util/setupAws";
@@ -10,14 +10,9 @@ const dynamoDB = new AWS.DynamoDB();
 export default function DynamoDb() {
   const { data: tables, isLoading, error } = useCachedPromise(fetchTables);
 
-  if (error) {
-    return (
-      <Detail markdown="No valid [configuration and credential file] (https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) found in your machine." />
-    );
-  }
-
   return (
     <List isLoading={isLoading} searchBarPlaceholder="Filter tables by name...">
+      {error && <List.EmptyView title={error.message} icon={Icon.Warning} />}
       {tables?.map((i, index) => (
         <DynamoDbTable key={index} tableName={i} />
       ))}
