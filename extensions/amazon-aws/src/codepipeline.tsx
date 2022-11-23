@@ -43,6 +43,7 @@ function CodePipelineListItem({ pipeline }: { pipeline: PipelineSummary }) {
               preferences.region
             }
           />
+          <Action.CopyToClipboard title="Copy Pipeline Name" content={pipeline.name || ""} />
         </ActionPanel>
       }
       accessories={[{ date: pipeline.created }, { icon: iconMap[status] }]}

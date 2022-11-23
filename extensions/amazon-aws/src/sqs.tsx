@@ -64,7 +64,7 @@ function SQSQueue({ queue }: { queue: string }) {
       actions={
         <ActionPanel>
           <Action.OpenInBrowser title="Open in Browser" shortcut={{ modifiers: [], key: "enter" }} url={path} />
-          <Action.CopyToClipboard title="Copy Path" content={queue} />
+          <Action.CopyToClipboard title="Copy Queue URL" content={queue} />
           <Action.SubmitForm
             title={`Purge Queue (${attributes?.ApproximateNumberOfMessages || "..."})`}
             onSubmit={handlePurgeQueueAction}

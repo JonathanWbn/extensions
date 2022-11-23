@@ -42,6 +42,7 @@ function EC2Instance({ instance }: { instance: AWS.EC2.Instance }) {
               instance.InstanceId
             }
           />
+          <Action.CopyToClipboard title="Copy Instance ID" content={instance.InstanceId || ""} />
           <Action.CopyToClipboard title="Copy Private IP" content={instance.PrivateIpAddress || ""} />
           {instance.PublicIpAddress && (
             <Action.CopyToClipboard title="Copy Public IP" content={instance.PublicIpAddress} />

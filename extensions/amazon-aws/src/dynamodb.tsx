@@ -39,6 +39,7 @@ function DynamoDbTable({ tableName }: { tableName: AWS.DynamoDB.TableName }) {
               "&tab=overview"
             }
           />
+          <Action.CopyToClipboard title="Copy Table Name" content={tableName || ""} />
         </ActionPanel>
       }
     />

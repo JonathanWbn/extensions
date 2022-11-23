@@ -29,8 +29,7 @@ function LambdaFunction({ func }: { func: AWS.Lambda.FunctionConfiguration }) {
             title="Open in Browser"
             url={`https://${preferences.region}.console.aws.amazon.com/lambda/home?region=${preferences.region}#/functions/${func.FunctionName}?tab=monitoring`}
           />
-          <Action.CopyToClipboard title="Copy ARN" content={func.FunctionArn || ""} />
-          <Action.CopyToClipboard title="Copy Name" content={func.FunctionName || ""} />
+          <Action.CopyToClipboard title="Copy Function Name" content={func.FunctionName || ""} />
         </ActionPanel>
       }
       accessories={[

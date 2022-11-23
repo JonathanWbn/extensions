@@ -40,6 +40,7 @@ function ECSCluster({ cluster }: { cluster: AWS.ECS.Cluster }) {
               cluster.clusterName
             }
           />
+          <Action.CopyToClipboard title="Copy Cluster ARN" content={cluster.clusterArn || ""} />
         </ActionPanel>
       }
       accessories={[{ text: cluster.status }]}
