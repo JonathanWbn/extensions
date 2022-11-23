@@ -41,7 +41,7 @@ function CodePipelineListItem({ pipeline }: { pipeline: PipelineSummary }) {
           <Action.CopyToClipboard title="Copy Pipeline Name" content={name} />
         </ActionPanel>
       }
-      accessories={[{ date: pipeline.created }, { icon: iconMap[status], tooltip: status }]}
+      accessories={[{ date: pipeline.updated || pipeline.created }, { icon: iconMap[status], tooltip: status }]}
     />
   );
 }
