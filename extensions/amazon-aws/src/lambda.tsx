@@ -1,9 +1,9 @@
 import { ActionPanel, List, Action, Icon } from "@raycast/api";
 import * as AWS from "aws-sdk";
-import setupAws from "./util/setupAws";
+import setupAws, { AWS_URL_BASE } from "./util/setupAws";
 import { useCachedPromise } from "@raycast/utils";
 
-const preferences = setupAws();
+const { region } = setupAws();
 
 export default function Lambda() {
   const { data: functions, error, isLoading } = useCachedPromise(fetchFunctions);
@@ -19,17 +19,19 @@ export default function Lambda() {
 }
 
 function LambdaFunction({ func }: { func: AWS.Lambda.FunctionConfiguration }) {
+  const name = func.FunctionName || "";
+
   return (
     <List.Item
       icon={Icon.CodeBlock}
-      title={func.FunctionName || ""}
+      title={name}
       actions={
         <ActionPanel>
           <Action.OpenInBrowser
             title="Open in Browser"
-            url={`https://${preferences.region}.console.aws.amazon.com/lambda/home?region=${preferences.region}#/functions/${func.FunctionName}?tab=monitoring`}
+            url={`${AWS_URL_BASE}/lambda/home?region=${region}#/functions/${name}?tab=monitoring`}
           />
-          <Action.CopyToClipboard title="Copy Function Name" content={func.FunctionName || ""} />
+          <Action.CopyToClipboard title="Copy Function Name" content={name} />
         </ActionPanel>
       }
       accessories={[

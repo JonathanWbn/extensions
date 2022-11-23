@@ -1,9 +1,9 @@
 import { ActionPanel, List, Action, Icon } from "@raycast/api";
 import AWS from "aws-sdk";
-import setupAws from "./util/setupAws";
+import setupAws, { AWS_URL_BASE } from "./util/setupAws";
 import { useCachedPromise } from "@raycast/utils";
 
-const preferences = setupAws();
+const { region } = setupAws();
 const ec2 = new AWS.EC2({ apiVersion: "2016-11-15" });
 
 export default function EC2() {
@@ -33,17 +33,12 @@ function EC2Instance({ instance }: { instance: AWS.EC2.Instance }) {
         <ActionPanel>
           <Action.OpenInBrowser
             title="Open in Browser"
-            url={
-              "https://" +
-              preferences.region +
-              ".console.aws.amazon.com/ec2/v2/home?region=" +
-              preferences.region +
-              "#InstanceDetails:instanceId=" +
-              instance.InstanceId
-            }
+            url={`${AWS_URL_BASE}/ec2/v2/home?region=${region}#InstanceDetails:instanceId=${instance.InstanceId}`}
           />
           <Action.CopyToClipboard title="Copy Instance ID" content={instance.InstanceId || ""} />
-          <Action.CopyToClipboard title="Copy Private IP" content={instance.PrivateIpAddress || ""} />
+          {instance.PrivateIpAddress && (
+            <Action.CopyToClipboard title="Copy Private IP" content={instance.PrivateIpAddress} />
+          )}
           {instance.PublicIpAddress && (
             <Action.CopyToClipboard title="Copy Public IP" content={instance.PublicIpAddress} />
           )}

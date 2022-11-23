@@ -1,10 +1,10 @@
 import { ActionPanel, List, Action, Icon } from "@raycast/api";
 import * as AWS from "aws-sdk";
-import setupAws from "./util/setupAws";
+import setupAws, { AWS_URL_BASE } from "./util/setupAws";
 import { useCachedPromise } from "@raycast/utils";
 import { PipelineSummary } from "aws-sdk/clients/codepipeline";
 
-const preferences = setupAws();
+const { region } = setupAws();
 const pipeline = new AWS.CodePipeline({ apiVersion: "2016-11-15" });
 
 export default function CodePipeline() {
@@ -24,29 +24,24 @@ function CodePipelineListItem({ pipeline }: { pipeline: PipelineSummary }) {
   const { data: execution } = useCachedPromise(fetchExecutionState, [pipeline.name]);
 
   const status = execution?.status || "Idle";
+  const name = pipeline.name || "";
 
   return (
     <List.Item
       id={pipeline.name}
       key={pipeline.name}
-      title={pipeline.name || "Unknown pipeline name"}
-      subtitle={status}
+      title={name}
       icon={Icon.List}
       actions={
         <ActionPanel>
           <Action.OpenInBrowser
             title="Open in Browser"
-            url={
-              "https://console.aws.amazon.com/codesuite/codepipeline/pipelines/" +
-              pipeline.name +
-              "/view?region=" +
-              preferences.region
-            }
+            url={`${AWS_URL_BASE}/codesuite/codepipeline/pipelines/${name}/view?region=${region}`}
           />
-          <Action.CopyToClipboard title="Copy Pipeline Name" content={pipeline.name || ""} />
+          <Action.CopyToClipboard title="Copy Pipeline Name" content={name} />
         </ActionPanel>
       }
-      accessories={[{ date: pipeline.created }, { icon: iconMap[status] }]}
+      accessories={[{ date: pipeline.created }, { icon: iconMap[status], tooltip: status }]}
     />
   );
 }

@@ -1,10 +1,10 @@
 import { ActionPanel, List, Action, Icon } from "@raycast/api";
 import AWS from "aws-sdk";
 
-import setupAws from "./util/setupAws";
+import setupAws, { AWS_URL_BASE } from "./util/setupAws";
 import { useCachedPromise } from "@raycast/utils";
 
-const preferences = setupAws();
+const { region } = setupAws();
 const dynamoDB = new AWS.DynamoDB();
 
 export default function DynamoDb() {
@@ -29,15 +29,7 @@ function DynamoDbTable({ tableName }: { tableName: AWS.DynamoDB.TableName }) {
         <ActionPanel>
           <Action.OpenInBrowser
             title="Open in Browser"
-            url={
-              "https://" +
-              preferences.region +
-              ".console.aws.amazon.com/dynamodbv2/home?region=" +
-              preferences.region +
-              "#table?initialTagKey=&name=" +
-              tableName +
-              "&tab=overview"
-            }
+            url={`${AWS_URL_BASE}/dynamodbv2/home?region=${region}#table?name=${tableName}`}
           />
           <Action.CopyToClipboard title="Copy Table Name" content={tableName || ""} />
         </ActionPanel>

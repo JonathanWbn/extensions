@@ -1,10 +1,10 @@
 import { ActionPanel, List, Action, Icon } from "@raycast/api";
 import AWS from "aws-sdk";
-import setupAws from "./util/setupAws";
+import setupAws, { AWS_URL_BASE } from "./util/setupAws";
 
 import { useCachedPromise } from "@raycast/utils";
 
-const preferences = setupAws();
+const { region } = setupAws();
 const ecs = new AWS.ECS({ apiVersion: "2016-11-15" });
 
 export default function ECS() {
@@ -31,14 +31,7 @@ function ECSCluster({ cluster }: { cluster: AWS.ECS.Cluster }) {
         <ActionPanel>
           <Action.OpenInBrowser
             title="Open in Browser"
-            url={
-              "https://" +
-              preferences.region +
-              ".console.aws.amazon.com/ecs/home?region=" +
-              preferences.region +
-              "#clusters/" +
-              cluster.clusterName
-            }
+            url={`${AWS_URL_BASE}/ecs/home?region=${region}#/clusters/${cluster.clusterName}/services`}
           />
           <Action.CopyToClipboard title="Copy Cluster ARN" content={cluster.clusterArn || ""} />
         </ActionPanel>

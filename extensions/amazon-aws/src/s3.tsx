@@ -1,12 +1,12 @@
 import fs from "fs";
 import { homedir } from "os";
 import { Readable } from "stream";
-import { ActionPanel, List, Detail, Action, Icon, showToast, Toast } from "@raycast/api";
+import { ActionPanel, List, Action, Icon, showToast, Toast } from "@raycast/api";
 import * as AWS from "aws-sdk";
-import setupAws from "./util/setupAws";
+import setupAws, { AWS_URL_BASE } from "./util/setupAws";
 import { useCachedPromise } from "@raycast/utils";
 
-const preferences = setupAws();
+const { region } = setupAws();
 const s3 = new AWS.S3();
 
 export default function S3() {
@@ -23,20 +23,20 @@ export default function S3() {
 }
 
 function S3Bucket({ bucket }: { bucket: AWS.S3.Bucket }) {
+  const name = bucket.Name || "";
+
   return (
     <List.Item
       icon={Icon.Folder}
-      title={bucket.Name || ""}
+      title={name}
       actions={
         <ActionPanel>
-          <Action.Push target={<S3BucketObjects bucket={bucket} />} title="List Objects" />
+          <Action.Push target={<S3BucketObjects bucketName={name} />} title="List Objects" />
           <Action.OpenInBrowser
             title="Open in Browser"
-            url={`https://s3.console.aws.amazon.com/s3/buckets/${bucket.Name || ""}?region=${
-              preferences.region
-            }&tab=objects`}
+            url={`${AWS_URL_BASE}/s3/buckets/${name}?region=${region}&tab=objects`}
           />
-          <Action.CopyToClipboard title="Copy Name" content={bucket.Name || ""} />
+          <Action.CopyToClipboard title="Copy Name" content={name} />
         </ActionPanel>
       }
       accessories={[{ date: bucket.CreationDate }]}
@@ -44,52 +44,52 @@ function S3Bucket({ bucket }: { bucket: AWS.S3.Bucket }) {
   );
 }
 
-function S3BucketObjects({ bucket }: { bucket: AWS.S3.Bucket }) {
-  const { data: objects, error, isLoading } = useCachedPromise(fetchBucketObjects, [bucket.Name || ""]);
-
-  if (error) {
-    return <Detail markdown="Something went wrong. Try again!" />;
-  }
+function S3BucketObjects({ bucketName }: { bucketName: string }) {
+  const { data: objects, error, isLoading } = useCachedPromise(fetchBucketObjects, [bucketName]);
 
   return (
     <List isLoading={isLoading} searchBarPlaceholder="Filter objects by name...">
-      {objects?.map((object) => (
-        <List.Item
-          key={object.Key || ""}
-          icon={Icon.Document}
-          title={object.Key || ""}
-          actions={
-            <ActionPanel>
-              <Action.OpenInBrowser
-                title="Open in Browser"
-                url={`https://s3.console.aws.amazon.com/s3/object/${bucket.Name || ""}?region=${
-                  preferences.region
-                }&prefix=${object.Key || ""}`}
-              />
-              <Action.SubmitForm
-                title="Download"
-                onSubmit={async () => {
-                  const toast = await showToast({ style: Toast.Style.Animated, title: "Downloading..." });
+      {error && <List.EmptyView title={error.message} icon={Icon.Warning} />}
+      {objects?.map((object) => {
+        const key = object.Key || "";
 
-                  try {
-                    const data = await s3.getObject({ Bucket: bucket.Name || "", Key: object.Key || "" }).promise();
-                    Readable.from(data.Body as Buffer).pipe(
-                      fs.createWriteStream(`${homedir()}/Downloads/${object.Key?.split("/").pop()}`)
-                    );
-                    toast.style = Toast.Style.Success;
-                    toast.title = "Downloaded to Downloads folder";
-                  } catch (err) {
-                    toast.style = Toast.Style.Failure;
-                    toast.title = "Failed to download";
-                  }
-                }}
-              />
-              <Action.CopyToClipboard title="Copy Key" content={object.Key || ""} />
-            </ActionPanel>
-          }
-          accessories={[{ text: humanFileSize(object.Size || 0) }]}
-        />
-      ))}
+        return (
+          <List.Item
+            key={key}
+            icon={Icon.Document}
+            title={key}
+            actions={
+              <ActionPanel>
+                <Action.OpenInBrowser
+                  title="Open in Browser"
+                  url={`${AWS_URL_BASE}/s3/object/${bucketName}?region=${region}&prefix=${key}`}
+                />
+                <Action.SubmitForm
+                  title="Download"
+                  icon={Icon.Download}
+                  onSubmit={async () => {
+                    const toast = await showToast({ style: Toast.Style.Animated, title: "Downloading..." });
+
+                    try {
+                      const data = await s3.getObject({ Bucket: bucketName, Key: key }).promise();
+                      Readable.from(data.Body as Buffer).pipe(
+                        fs.createWriteStream(`${homedir()}/Downloads/${object.Key?.split("/").pop()}`)
+                      );
+                      toast.style = Toast.Style.Success;
+                      toast.title = "Downloaded to Downloads folder";
+                    } catch (err) {
+                      toast.style = Toast.Style.Failure;
+                      toast.title = "Failed to download";
+                    }
+                  }}
+                />
+                <Action.CopyToClipboard title="Copy Key" content={key} />
+              </ActionPanel>
+            }
+            accessories={[{ text: humanFileSize(object.Size || 0) }]}
+          />
+        );
+      })}
     </List>
   );
 }

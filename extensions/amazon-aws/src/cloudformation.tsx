@@ -1,10 +1,10 @@
 import { ActionPanel, List, Action, Icon } from "@raycast/api";
 import * as AWS from "aws-sdk";
 import { StackSummary } from "aws-sdk/clients/cloudformation";
-import setupAws from "./util/setupAws";
+import setupAws, { AWS_URL_BASE } from "./util/setupAws";
 import { useCachedPromise } from "@raycast/utils";
 
-const preferences = setupAws();
+const { region } = setupAws();
 const cloudformation = new AWS.CloudFormation({ apiVersion: "2016-11-15" });
 
 export default function CloudFormation() {
@@ -31,12 +31,9 @@ function CloudFormationStack({ stack }: { stack: StackSummary }) {
         <ActionPanel>
           <Action.OpenInBrowser
             title="Open in Browser"
-            url={
-              "https://console.aws.amazon.com/cloudformation/home?region=" +
-              preferences.region +
-              "#/stacks/stackinfo?stackId=" +
-              stack.StackId
-            }
+            url={`${AWS_URL_BASE}/cloudformation/home?region=${region}#/stacks/stackinfo?stackId=${encodeURIComponent(
+              stack.StackId as string
+            )}`}
           />
           <Action.CopyToClipboard title="Copy Stack ID" content={stack.StackId || ""} />
         </ActionPanel>

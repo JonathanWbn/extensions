@@ -1,9 +1,9 @@
 import { ActionPanel, List, Action, confirmAlert, Toast, showToast, Icon } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
 import AWS from "aws-sdk";
-import setupAws from "./util/setupAws";
+import setupAws, { AWS_URL_BASE } from "./util/setupAws";
 
-const preferences = setupAws();
+const { region } = setupAws();
 const sqs = new AWS.SQS({ apiVersion: "2012-11-05" });
 
 export default function SQS() {
@@ -21,7 +21,6 @@ export default function SQS() {
 
 function SQSQueue({ queue }: { queue: string }) {
   const { data: attributes, revalidate } = useCachedPromise(fetchQueueAttributes, [queue]);
-  const displayName = (queue.split("/").at(-1) ?? "").replace(/-/g, " ").replace(/\./g, " ");
 
   function handlePurgeQueueAction() {
     confirmAlert({
@@ -47,25 +46,22 @@ function SQSQueue({ queue }: { queue: string }) {
     });
   }
 
-  const path =
-    "https://" +
-    preferences.region +
-    ".console.aws.amazon.com/sqs/v2/home?region=" +
-    preferences.region +
-    "#/queues/" +
-    encodeURIComponent(queue);
-
   return (
     <List.Item
       id={queue}
       key={queue}
-      title={displayName ?? ""}
+      title={queue.slice(queue.lastIndexOf("/") + 1)}
       icon={Icon.Forward}
       actions={
         <ActionPanel>
-          <Action.OpenInBrowser title="Open in Browser" shortcut={{ modifiers: [], key: "enter" }} url={path} />
+          <Action.OpenInBrowser
+            title="Open in Browser"
+            shortcut={{ modifiers: [], key: "enter" }}
+            url={`${AWS_URL_BASE}/sqs/v2/home?region=${region}#/queues/${encodeURIComponent(queue)}`}
+          />
           <Action.CopyToClipboard title="Copy Queue URL" content={queue} />
           <Action.SubmitForm
+            icon={Icon.Trash}
             title={`Purge Queue (${attributes?.ApproximateNumberOfMessages || "..."})`}
             onSubmit={handlePurgeQueueAction}
           />
@@ -74,13 +70,13 @@ function SQSQueue({ queue }: { queue: string }) {
       accessories={[
         {
           icon: Icon.Message,
-          text: attributes ? attributes.ApproximateNumberOfMessages : "...",
-          tooltip: "Approximated Number of Messages",
+          text: attributes?.ApproximateNumberOfMessages || "",
+          tooltip: "Messages available",
         },
         {
           icon: Icon.AirplaneLanding,
-          text: attributes ? attributes.ApproximateNumberOfMessagesNotVisible : "...",
-          tooltip: "Approximated Number of Messages Not Visible",
+          text: attributes?.ApproximateNumberOfMessagesNotVisible || "...",
+          tooltip: "Messages in flight",
         },
         {
           date: attributes && new Date(Number.parseInt(attributes.CreatedTimestamp) * 1000),
